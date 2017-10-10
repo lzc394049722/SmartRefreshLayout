@@ -3,6 +3,7 @@ package com.scwang.refreshlayout.activity.using;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
@@ -23,11 +24,9 @@ import java.util.Locale;
  */
 public class ListenerUsingActivity extends AppCompatActivity {
 
-
     private static DateFormat FORMAT = new SimpleDateFormat("HH:mm sss", Locale.CHINA);
 
     private TextView mTvContent;
-    private static boolean isFirstEnter = true;
     private String mHeaderPulling;
     private String mHeaderReleasing;
     private String mFooterPulling;
@@ -39,6 +38,8 @@ public class ListenerUsingActivity extends AppCompatActivity {
     private String mRefresh;
     private String mLoadmore;
     private String mStateChanged;
+
+    private static boolean isFirstEnter = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +55,11 @@ public class ListenerUsingActivity extends AppCompatActivity {
         });
 
         mTvContent = (TextView) findViewById(R.id.content);
+        mTvContent.setMovementMethod(ScrollingMovementMethod.getInstance());
 
         final RefreshLayout refreshLayout = (RefreshLayout) findViewById(R.id.refreshLayout);
         refreshLayout.setOnMultiPurposeListener(new SimpleMultiPurposeListener() {
+
             @Override
             public void onHeaderPulling(RefreshHeader header, float percent, int offset, int headerHeight, int extendHeight) {
                 mHeaderPulling = String.format(Locale.CHINA, "%s\npercent=%.02f offset=%03d\nheight=%03d extend=%03d",
@@ -139,13 +142,13 @@ public class ListenerUsingActivity extends AppCompatActivity {
             }
         });
 
-
         if (isFirstEnter) {
             isFirstEnter = false;
             //触发自动刷新
             refreshLayout.autoRefresh();
+        } else {
+            updateContent();
         }
-
     }
 
     private void updateContent() {

@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -253,27 +254,24 @@ public class CircleHeader extends View implements RefreshHeader {
     }
 
     @Override
-    public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
-        mHeadHeight = headHeight;
-        mWaveHeight = Math.max(offset - headHeight, 0) * .8f;
+    public boolean isSupportHorizontalDrag() {
+        return false;
     }
 
     @Override
-    public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
-        if (mState != RefreshState.Refreshing) {
-            onPullingDown(percent, offset, headHeight, extendHeight);
-        }
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
     }
 
     @Override
-    public void onStateChanged(RefreshLayout refreshLayout, RefreshState oldState, RefreshState newState) {
-        mState = newState;
+    public void onPullingDown(float percent, int offset, int headerHeight, int extendHeight) {
+        mHeadHeight = headerHeight;
+        mWaveHeight = Math.max(offset - headerHeight, 0) * .8f;
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
-        mHeadHeight = headHeight;
-        mBollRadius = headHeight / 6;
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
+        mHeadHeight = headerHeight;
+        mBollRadius = headerHeight / 6;
         DecelerateInterpolator interpolator = new DecelerateInterpolator();
         final float reboundHeight = Math.min(mWaveHeight * 0.8f, mHeadHeight / 2);
         ValueAnimator waveAnimator = ValueAnimator.ofFloat(
@@ -333,6 +331,22 @@ public class CircleHeader extends View implements RefreshHeader {
     }
 
     @Override
+    public void onReleasing(float percent, int offset, int headerHeight, int extendHeight) {
+        if (mState != RefreshState.Refreshing && mState != RefreshState.RefreshReleased) {
+            onPullingDown(percent, offset, headerHeight, extendHeight);
+        }
+    }
+
+    @Override
+    public void onStateChanged(RefreshLayout refreshLayout, RefreshState oldState, RefreshState newState) {
+        mState = newState;
+    }
+
+    @Override
+    public void onStartAnimator(RefreshLayout layout, int headerHeight, int extendHeight) {
+    }
+
+    @Override
     public int onFinish(RefreshLayout layout, boolean success) {
         mShowOuter = false;
         mShowBoll = false;
@@ -350,8 +364,8 @@ public class CircleHeader extends View implements RefreshHeader {
         return DURATION_FINISH;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             mBackPaint.setColor(colors[0]);
             if (colors.length > 1) {

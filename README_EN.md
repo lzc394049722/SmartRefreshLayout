@@ -2,8 +2,8 @@
 
 [![License](https://img.shields.io/badge/License%20-Apache%202-337ab7.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Arsenal](https://img.shields.io/badge/%20Arsenal%20-%20SmartRefresh%20-4cae4c.svg?style=flat)](https://android-arsenal.com/details/1/6001)
-[![Jcenter](https://img.shields.io/badge/%20Jcenter%20-1.0.2-5bc0de.svg) ](https://bintray.com/scwang90/maven/SmartRefreshLayout/_latestVersion) 
-[![API](https://img.shields.io/badge/%20API%20-%2012%2B%20-f0ad4e.svg?style=flat)](https://android-arsenal.com/api?level=12)
+[![Jcenter](https://img.shields.io/badge/%20Jcenter%20-1.0.3-5bc0de.svg) ](https://bintray.com/scwang90/maven/SmartRefreshLayout/_latestVersion) 
+[![MinSdk](https://img.shields.io/badge/%20MinSdk%20-%2012%2B%20-f0ad4e.svg?style=flat)](https://android-arsenal.com/api?level=12)
 [![Methods](https://img.shields.io/badge/%20Methods%20%7C%20Size%20-%201251%20%7C%20129%20KB-d9534f.svg)](http://www.methodscount.com/?lib=com.scwang.smartrefresh%3ASmartRefreshLayout%3A1.0.2)
 
 <!-- [![Platform](https://img.shields.io/badge/Platform-Android-f0ad4e.svg)](https://www.android.com) -->
@@ -40,6 +40,7 @@ SmartRefreshLayout's goal is to build a strong, stable and mature refresh layout
  - [Update log](art/md_update.md)
  - [Attribute method](art/md_property.md)
  - [Blog posts](https://segmentfault.com/a/1190000010066071) 
+ - [Download the source code](https://github.com/scwang90/SmartRefreshLayout/releases) 
  
 ## Demo
 [Download APK-Demo](art/app-debug.apk)
@@ -92,8 +93,12 @@ Please rest assured that I have divided it into three packages, when used to ref
 #### 1.Add a gradle dependency.
 ```
 compile 'com.android.support:appcompat-v7:25.3.1'
-compile 'com.scwang.smartrefresh:SmartRefreshLayout:1.0.2'
-compile 'com.scwang.smartrefresh:SmartRefreshHeader:1.0.2'//If you use the special Header
+compile 'com.scwang.smartrefresh:SmartRefreshLayout:1.0.3'
+compile 'com.scwang.smartrefresh:SmartRefreshHeader:1.0.3'//If you use the special Header
+
+//alpha-version
+compile 'com.scwang.smartrefresh:SmartRefreshLayout:1.0.4-alpha-3'
+compile 'com.scwang.smartrefresh:SmartRefreshHeader:1.0.4-alpha-3'
 ```
 
 #### 2.Add SmartRefreshLayout in the layout xml.
@@ -118,13 +123,13 @@ RefreshLayout refreshLayout = (RefreshLayout)findViewById(R.id.refreshLayout);
 refreshLayout.setOnRefreshListener(new OnRefreshListener() {
     @Override
     public void onRefresh(RefreshLayout refreshlayout) {
-        refreshlayout.finishRefresh(2000).setSpinnerStyle(SpinnerStyle.Translate);
+        refreshlayout.finishRefresh(2000);
     }
 });
 refreshLayout.setOnLoadmoreListener(new OnLoadmoreListener() {
     @Override
     public void onLoadmore(RefreshLayout refreshlayout) {
-        refreshlayout.finishLoadmore(2000).setSpinnerStyle(SpinnerStyle.Translate);
+        refreshlayout.finishLoadmore(2000);
     }
 });
 ```
@@ -196,7 +201,7 @@ refreshLayout.setRefreshHeader(new MaterialHeader(this).setShowBezierWave(true))
 refreshLayout.setRefreshFooter(new BallPulseFooter(this).setSpinnerStyle(SpinnerStyle.Scale));
 ```
 
-## Proguard
+## ProGuard
 
 This library does't use serialization and deserialization, JNI, reflection, so there is no need to add confusing filtering code, and it has been confusing tests pass, if you after the confusion in the use of the project appear problem, please inform me.
 
@@ -205,7 +210,7 @@ This library does't use serialization and deserialization, JNI, reflection, so t
 If you like this library's design, feel it help to you, you can point the upper right corner "Star" support Thank you! ^ _ ^  
 You can also scan the qr code below to ask the author to drink a cup of coffee.
 
-![](art/pay_alipay.jpg) ![](art/pay_wxpay.jpg)
+![](art/pay_alipay.jpg) ![](art/pay_wxpay.jpg) ![](art/pay_tencent.jpg)
 
 If in the donation message note name, will be record to the list  
 [Donation list](art/md_donationlist.md)

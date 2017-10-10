@@ -1,13 +1,14 @@
 package com.scwang.smartrefresh.header;
 
-import android.support.annotation.RequiresApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -192,14 +193,33 @@ public class DeliveryHeader extends View implements RefreshHeader {
 
 
     //<editor-fold desc="RefreshHeader">
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
     @Override
     public void onPullingDown(float percent, int offset, int headerHeight, int extendHeight) {
-        mBoxDrawable.getPaint().setAlpha((int) (255 * (1f - Math.max(0, percent - 1))));
+        if (mState != RefreshState.Refreshing) {
+            mBoxDrawable.getPaint().setAlpha((int) (255 * (1f - Math.max(0, percent - 1))));
+        }
+    }
+
+    @Override
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
+        onStartAnimator(layout, headerHeight, extendHeight);
     }
 
     @Override
     public void onReleasing(float percent, int offset, int headerHeight, int extendHeight) {
-        mBoxDrawable.getPaint().setAlpha((int) (255 * (1f - Math.max(0, percent - 1))));
+        if (mState != RefreshState.Refreshing) {
+            mBoxDrawable.getPaint().setAlpha((int) (255 * (1f - Math.max(0, percent - 1))));
+        }
     }
 
     @Override
@@ -222,8 +242,8 @@ public class DeliveryHeader extends View implements RefreshHeader {
         return SpinnerStyle.Scale;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             setBackgroundColor(colors[0]);
             if (colors.length > 1) {
@@ -240,6 +260,7 @@ public class DeliveryHeader extends View implements RefreshHeader {
     @Override
     public void onStartAnimator(RefreshLayout layout, int height, int extendHeight) {
         mState = RefreshState.Refreshing;
+        mBoxDrawable.getPaint().setAlpha(255);
         invalidate();
     }
 

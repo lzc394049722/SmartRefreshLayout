@@ -1,6 +1,5 @@
 package com.scwang.smartrefresh.header;
 
-import android.support.annotation.RequiresApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -9,8 +8,10 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.Transformation;
@@ -204,7 +205,7 @@ public class  StoreHouseHeader extends View implements RefreshHeader {
         return this;
     }
 
-    public StoreHouseHeader setTextColor(int color) {
+    public StoreHouseHeader setTextColor(@ColorInt int color) {
         mTextColor = color;
         for (int i = 0; i < mItemList.size(); i++) {
             mItemList.get(i).setColor(color);
@@ -341,6 +342,15 @@ public class  StoreHouseHeader extends View implements RefreshHeader {
     }
 
     @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
+    @Override
     public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
         setProgress(percent * .8f);
         invalidate();
@@ -353,8 +363,13 @@ public class  StoreHouseHeader extends View implements RefreshHeader {
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
         beginLoading();
+    }
+
+    @Override
+    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+
     }
 
     @Override
@@ -375,8 +390,8 @@ public class  StoreHouseHeader extends View implements RefreshHeader {
         return 0;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             mBackgroundColor = colors[0];
             if (mRefreshKernel != null) {
@@ -440,8 +455,8 @@ public class  StoreHouseHeader extends View implements RefreshHeader {
             }
 
             mTick++;
-            if (mRunning) {
-                postDelayed(this, mInterval);
+            if (mRunning && mRefreshKernel != null) {
+                mRefreshKernel.getRefreshLayout().getLayout().postDelayed(this, mInterval);
             }
         }
 

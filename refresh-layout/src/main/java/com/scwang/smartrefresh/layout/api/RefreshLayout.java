@@ -2,8 +2,6 @@ package com.scwang.smartrefresh.layout.api;
 
 import android.support.annotation.ColorRes;
 import android.support.annotation.Nullable;
-import android.support.v4.view.NestedScrollingChild;
-import android.support.v4.view.NestedScrollingParent;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
@@ -18,7 +16,7 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshLoadmoreListener;
  * Created by SCWANG on 2017/5/26.
  */
 
-public interface RefreshLayout extends NestedScrollingParent, NestedScrollingChild {
+public interface RefreshLayout {
 
     RefreshLayout setFooterHeight(float dp);
 
@@ -42,6 +40,16 @@ public interface RefreshLayout extends NestedScrollingParent, NestedScrollingChi
      * 设置上啦最大高度和Footer高度的比率（将会影响可以上啦的最大高度）
      */
     RefreshLayout setFooterMaxDragRate(float rate);
+
+    /**
+     * 设置 触发刷新距离 与 HeaderHieght 的比率
+     */
+    RefreshLayout setHeaderTriggerRate(float rate);
+
+    /**
+     * 设置 触发加载距离 与 FooterHieght 的比率
+     */
+    RefreshLayout setFooterTriggerRate(float rate);
 
     /**
      * 设置回弹显示插值器
@@ -96,7 +104,7 @@ public interface RefreshLayout extends NestedScrollingParent, NestedScrollingChi
     /**
      * 设置指定的Footer
      */
-    RefreshLayout setRefreshFooter(RefreshFooter bottom);
+    RefreshLayout setRefreshFooter(RefreshFooter footer);
 
     /**
      * 设置指定的Footer
@@ -129,6 +137,16 @@ public interface RefreshLayout extends NestedScrollingParent, NestedScrollingChi
     RefreshLayout setEnableScrollContentWhenLoaded(boolean enable);
 
     /**
+     * 设置在内容不满一页的时候，是否可以上拉加载更多
+     */
+    RefreshLayout setEnableLoadmoreWhenContentNotFull(boolean enable);
+
+    /**
+     * 设置是会否启用嵌套滚动功能（默认关闭+智能开启）
+     */
+    RefreshLayout setEnableNestedScroll(boolean enabled);
+
+    /**
      * 单独设置刷新监听器
      */
     RefreshLayout setOnRefreshListener(OnRefreshListener listener);
@@ -159,9 +177,9 @@ public interface RefreshLayout extends NestedScrollingParent, NestedScrollingChi
     RefreshLayout setPrimaryColors(int... colors);
 
     /**
-     * 设置滚动边界
+     * 设置滚动边界判断器
      */
-    RefreshLayout setRefreshScrollBoundary(RefreshScrollBoundary boundary);
+    RefreshLayout setScrollBoundaryDecider(ScrollBoundaryDecider boundary);
 
     /**
      * 完成刷新

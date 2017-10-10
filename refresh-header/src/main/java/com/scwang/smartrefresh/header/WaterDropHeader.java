@@ -8,11 +8,12 @@ package com.scwang.smartrefresh.header;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.support.annotation.RequiresApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -134,7 +135,9 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
             canvas.save();
             canvas.translate(
                     getWidth()/2-mProgressDrawable.width()/2,
-                    getHeight()/2-mProgressDrawable.height()/2
+                    mWaterDropView.getMaxCircleRadius()
+                            +mWaterDropView.getPaddingTop()
+                            -mProgressDrawable.height()/2
             );
             canvas.rotate(mProgressDegree, mProgressDrawable.width() / 2, mProgressDrawable.height() / 2);
             mProgressDrawable.draw(canvas);
@@ -145,8 +148,17 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
 
     //<editor-fold desc="RefreshHeader">
     @Override
-    public void onInitialized(RefreshKernel layout, int height, int extendHeight) {
+    public void onInitialized(RefreshKernel kernel, int height, int extendHeight) {
 
+    }
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
     }
 
     @Override
@@ -173,7 +185,7 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
 
     @Override
     public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
-        if (mState != RefreshState.Refreshing) {
+        if (mState != RefreshState.Refreshing && mState != RefreshState.RefreshReleased) {
             mWaterDropView.updateComleteState(Math.max(offset, 0), headHeight + extendHeight);
             mWaterDropView.postInvalidate();
         }
@@ -203,7 +215,7 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+    public void onRefreshReleased(final RefreshLayout layout, int headerHeight, int extendHeight) {
         Animator animator = mWaterDropView.createAnimator();
         animator.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -217,16 +229,21 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
             }
         });
         animator.start();//开始回弹
-        postDelayed(new Runnable() {
+        layout.getLayout().postDelayed(new Runnable() {
             @Override
             public void run() {
                 mProgressDegree = (mProgressDegree + 30) % 360;
                 invalidate();
-                if (mState == RefreshState.Refreshing) {
-                    postDelayed(this, 100);
+                if (mState == RefreshState.Refreshing || mState == RefreshState.RefreshReleased) {
+                    layout.getLayout().postDelayed(this, 100);
                 }
             }
         },100);
+    }
+
+    @Override
+    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+
     }
 
     @Override
@@ -234,8 +251,8 @@ public class WaterDropHeader extends ViewGroup implements RefreshHeader {
         return 0;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             mWaterDropView.setIndicatorColor(colors[0]);
         }

@@ -11,6 +11,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -133,7 +134,30 @@ public class DropboxHeader extends View implements RefreshHeader {
             mDrawable3 = drawable3;
         }
         ta.recycle();
+    }
 
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        initAnimator();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mReboundAnimator != null) {
+            mReboundAnimator.removeAllUpdateListeners();
+            mReboundAnimator.removeAllListeners();
+            mReboundAnimator = null;
+        }
+        if (mDropOutAnimator != null) {
+            mDropOutAnimator.removeAllUpdateListeners();
+            mDropOutAnimator.removeAllListeners();
+            mDropOutAnimator = null;
+        }
+    }
+
+    private void initAnimator() {
         AccelerateInterpolator interpolator = new AccelerateInterpolator();
         mReboundAnimator = ValueAnimator.ofFloat(0, 1, 0);
         mReboundAnimator.setInterpolator(interpolator);
@@ -149,7 +173,9 @@ public class DropboxHeader extends View implements RefreshHeader {
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (mState == RefreshState.Refreshing) {
-                    mDropOutAnimator.start();
+                    if (mDropOutAnimator != null) {
+                        mDropOutAnimator.start();
+                    }
                 }
             }
         });
@@ -176,7 +202,9 @@ public class DropboxHeader extends View implements RefreshHeader {
         mDropOutAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mReboundAnimator.start();
+                if (mReboundAnimator != null) {
+                    mReboundAnimator.start();
+                }
             }
         });
     }
@@ -232,7 +260,7 @@ public class DropboxHeader extends View implements RefreshHeader {
 
     //</editor-fold>
 
-    //<editor-fold desc="Description">
+    //<editor-fold desc="路径绘制">
     private int generateSideLength() {
         return mHeaderHeight / 5;
     }
@@ -328,9 +356,26 @@ public class DropboxHeader extends View implements RefreshHeader {
     //</editor-fold>
 
     //<editor-fold desc="RefreshHeader">
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
     @Override
     public void onPullingDown(float percent, int offset, int headerHeight, int extendHeight) {
-        mReboundPercent = 1f * Math.max(0, offset - headerHeight) / extendHeight;
+        if (mState != RefreshState.Refreshing) {
+            mReboundPercent = 1f * Math.max(0, offset - headerHeight) / extendHeight;
+        }
+    }
+
+    @Override
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
+
     }
 
     @Override
@@ -357,8 +402,8 @@ public class DropboxHeader extends View implements RefreshHeader {
         return SpinnerStyle.Scale;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             setBackgroundColor(colors[0]);
             if (colors.length > 1) {
@@ -378,7 +423,9 @@ public class DropboxHeader extends View implements RefreshHeader {
 
     @Override
     public void onStartAnimator(RefreshLayout layout, int height, int extendHeight) {
-        mDropOutAnimator.start();
+        if (mDropOutAnimator != null) {
+            mDropOutAnimator.start();
+        }
     }
 
     @Override
@@ -388,7 +435,7 @@ public class DropboxHeader extends View implements RefreshHeader {
     }
     //</editor-fold>
 
-    private class BoxBody {
+    private static class BoxBody {
 
         private int boxCenterX;
         private int boxCenterY;

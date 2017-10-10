@@ -1,13 +1,14 @@
 package com.scwang.smartrefresh.header;
 
-import android.support.annotation.RequiresApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.VisibleForTesting;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -30,6 +31,7 @@ import static android.view.View.MeasureSpec.getSize;
  * Created by SCWANG on 2017/6/2.
  */
 
+@SuppressWarnings("unused")
 public class MaterialHeader extends ViewGroup implements RefreshHeader {
 
     // Maps to ProgressBar.Large style
@@ -57,6 +59,7 @@ public class MaterialHeader extends ViewGroup implements RefreshHeader {
     private Path mBezierPath;
     private Paint mBezierPaint;
     private boolean mShowBezierWave = false;
+    private RefreshState mState;
 
     //<editor-fold desc="MaterialHeader">
     public MaterialHeader(Context context) {
@@ -111,12 +114,6 @@ public class MaterialHeader extends ViewGroup implements RefreshHeader {
         }
         ta.recycle();
 
-    }
-
-    @Override
-    public void setLayoutParams(ViewGroup.LayoutParams params) {
-        super.setLayoutParams(params);
-        params.height = -3;
     }
 
     @Override
@@ -209,58 +206,75 @@ public class MaterialHeader extends ViewGroup implements RefreshHeader {
     }
 
     @Override
-    public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
+    @Override
+    public void onPullingDown(float percent, int offset, int headerHeight, int extendHeight) {
         if (mShowBezierWave) {
-            mHeadHeight = Math.min(offset, headHeight);
-            mWaveHeight = Math.max(0, offset - headHeight);
+            mHeadHeight = Math.min(offset, headerHeight);
+            mWaveHeight = Math.max(0, offset - headerHeight);
             postInvalidate();
         }
 
-        float originalDragPercent = 1f * offset / headHeight;
+        if (mState != RefreshState.Refreshing) {
+            float originalDragPercent = 1f * offset / headerHeight;
 
-        float dragPercent = Math.min(1f, Math.abs(originalDragPercent));
-        float adjustedPercent = (float) Math.max(dragPercent - .4, 0) * 5 / 3;
-        float extraOS = Math.abs(offset) - headHeight;
-        float tensionSlingshotPercent = Math.max(0, Math.min(extraOS, (float) headHeight * 2)
-                / (float) headHeight);
-        float tensionPercent = (float) ((tensionSlingshotPercent / 4) - Math.pow(
-                (tensionSlingshotPercent / 4), 2)) * 2f;
-        float strokeStart = adjustedPercent * .8f;
-        mProgress.showArrow(true);
-        mProgress.setStartEndTrim(0f, Math.min(MAX_PROGRESS_ANGLE, strokeStart));
-        mProgress.setArrowScale(Math.min(1f, adjustedPercent));
+            float dragPercent = Math.min(1f, Math.abs(originalDragPercent));
+            float adjustedPercent = (float) Math.max(dragPercent - .4, 0) * 5 / 3;
+            float extraOS = Math.abs(offset) - headerHeight;
+            float tensionSlingshotPercent = Math.max(0, Math.min(extraOS, (float) headerHeight * 2)
+                    / (float) headerHeight);
+            float tensionPercent = (float) ((tensionSlingshotPercent / 4) - Math.pow(
+                    (tensionSlingshotPercent / 4), 2)) * 2f;
+            float strokeStart = adjustedPercent * .8f;
+            mProgress.showArrow(true);
+            mProgress.setStartEndTrim(0f, Math.min(MAX_PROGRESS_ANGLE, strokeStart));
+            mProgress.setArrowScale(Math.min(1f, adjustedPercent));
 
-        float rotation = (-0.25f + .4f * adjustedPercent + tensionPercent * 2) * .5f;
-        mProgress.setProgressRotation(rotation);
-        mCircleView.setAlpha(Math.min(1f, originalDragPercent*2));
+            float rotation = (-0.25f + .4f * adjustedPercent + tensionPercent * 2) * .5f;
+            mProgress.setProgressRotation(rotation);
+            mCircleView.setAlpha(Math.min(1f, originalDragPercent*2));
+        }
 
         float targetY = offset / 2 + mCircleDiameter / 2;
         mCircleView.setTranslationY(Math.min(offset, targetY));//setTargetOffsetTopAndBottom(targetY - mCurrentTargetOffsetTop, true /* requires update */);
     }
 
     @Override
-    public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
+    public void onReleasing(float percent, int offset, int headerHeight, int extendHeight) {
         if (!mProgress.isRunning() && !mFinished) {
-            onPullingDown(percent, offset, headHeight, extendHeight);
+            onPullingDown(percent, offset, headerHeight, extendHeight);
         } else {
             if (mShowBezierWave) {
-                mHeadHeight = Math.min(offset, headHeight);
-                mWaveHeight = Math.max(0, offset - headHeight);
+                mHeadHeight = Math.min(offset, headerHeight);
+                mWaveHeight = Math.max(0, offset - headerHeight);
                 postInvalidate();
             }
         }
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
         mProgress.start();
-        if ((int) mCircleView.getTranslationY() != headHeight / 2 + mCircleDiameter / 2) {
-            mCircleView.animate().translationY(headHeight / 2 + mCircleDiameter / 2);
+        if ((int) mCircleView.getTranslationY() != headerHeight / 2 + mCircleDiameter / 2) {
+            mCircleView.animate().translationY(headerHeight / 2 + mCircleDiameter / 2);
         }
     }
 
     @Override
+    public void onStartAnimator(RefreshLayout layout, int headerHeight, int extendHeight) {
+
+    }
+
+    @Override
     public void onStateChanged(RefreshLayout refreshLayout, RefreshState oldState, RefreshState newState) {
+        mState = newState;
         switch (newState) {
             case None:
                 break;
@@ -285,12 +299,11 @@ public class MaterialHeader extends ViewGroup implements RefreshHeader {
         return 0;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             mBezierPaint.setColor(colors[0]);
         }
-        //mProgress.setColorSchemeColors(colors);
     }
 
     @NonNull
@@ -301,7 +314,7 @@ public class MaterialHeader extends ViewGroup implements RefreshHeader {
 
     @Override
     public SpinnerStyle getSpinnerStyle() {
-        return SpinnerStyle.FixedFront;
+        return SpinnerStyle.MatchLayout;
     }
     //</editor-fold>
 

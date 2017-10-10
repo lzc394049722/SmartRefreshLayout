@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -92,6 +93,8 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
         }
         if (accentColor != 0) {
             mCircleView.setProgressColorSchemeColors(accentColor);
+        } else {
+            mCircleView.setProgressColorSchemeColors(0xffffffff);
         }
         if (ta.hasValue(R.styleable.WaveSwipeHeader_wshShadowRadius)) {
             int radius = ta.getDimensionPixelOffset(R.styleable.WaveSwipeHeader_wshShadowRadius, 0);
@@ -100,12 +103,6 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
         }
 
         ta.recycle();
-    }
-
-    @Override
-    public void setLayoutParams(ViewGroup.LayoutParams params) {
-        super.setLayoutParams(params);
-        params.height = -3;
     }
 
     @Override
@@ -145,8 +142,17 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
     //<editor-fold desc="RefreshHeader">
 
     @Override
-    public void onInitialized(RefreshKernel layout, int height, int extendHeight) {
+    public void onInitialized(RefreshKernel kernel, int height, int extendHeight) {
 
+    }
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
     }
 
     @Override
@@ -200,7 +206,7 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
         mLastFirstBounds = 0;
         mWaveView.animationDropCircle();
         mCircleView.makeProgressTransparent();
@@ -219,6 +225,11 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
     }
 
     @Override
+    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+
+    }
+
+    @Override
     public void onStateChanged(RefreshLayout refreshLayout, RefreshState oldState, RefreshState newState) {
         mState = newState;
         switch (newState) {
@@ -230,6 +241,8 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
                 mCircleView.makeProgressTransparent();
                 break;
             case PullDownCanceled:
+                mCircleView.showArrow(false);
+                mCircleView.setProgressRotation(0);
                 mCircleView.setProgressStartEndTrim(0f, 0f);
                 mWaveView.startWaveAnimation(mLastFirstBounds);
                 mLastFirstBounds = 0;
@@ -264,8 +277,8 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
         return 0;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             mWaveView.setWaveColor(colors[0]);
             if (colors.length > 1) {
@@ -282,7 +295,7 @@ public class WaveSwipeHeader extends ViewGroup implements RefreshHeader {
 
     @Override
     public SpinnerStyle getSpinnerStyle() {
-        return SpinnerStyle.FixedFront;
+        return SpinnerStyle.MatchLayout;
     }
     //</editor-fold>
 

@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
@@ -37,6 +39,7 @@ public class BezierRadarHeader extends FrameLayout implements RefreshHeader {
     private RippleView mRippleView;
     private RoundDotView mDotView;
     private RoundProgressView mProgressView;
+    private boolean mEnableHorizontalDrag = false;
 
     //<editor-fold desc="FrameLayout">
     public BezierRadarHeader(Context context) {
@@ -77,47 +80,58 @@ public class BezierRadarHeader extends FrameLayout implements RefreshHeader {
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.BezierRadarHeader);
 
+        mEnableHorizontalDrag = ta.getBoolean(R.styleable.BezierRadarHeader_srlEnableHorizontalDrag, mEnableHorizontalDrag);
         int primaryColor = ta.getColor(R.styleable.BezierRadarHeader_srlPrimaryColor, 0);
         int accentColor = ta.getColor(R.styleable.BezierRadarHeader_srlAccentColor, 0);
         if (primaryColor != 0) {
             setPrimaryColor(primaryColor);
         }
         if (accentColor != 0) {
-            setAccentColor(primaryColor);
+            setAccentColor(accentColor);
         }
 
         ta.recycle();
     }
+
     //</editor-fold>
 
     //<editor-fold desc="API">
-    public BezierRadarHeader setPrimaryColor(int color) {
+    public BezierRadarHeader setPrimaryColor(@ColorInt int color) {
         mWaveView.setWaveColor(color);
         mProgressView.setBackColor(color);
         return this;
     }
 
-    public BezierRadarHeader setAccentColor(int color) {
+    public BezierRadarHeader setAccentColor(@ColorInt int color) {
         mDotView.setDotColor(color);
         mRippleView.setFrontColor(color);
         mProgressView.setFrontColor(color);
         return this;
     }
 
-    public BezierRadarHeader setPrimaryColorId(int colorId) {
+    public BezierRadarHeader setPrimaryColorId(@ColorRes int colorId) {
         setPrimaryColor(ContextCompat.getColor(getContext(), colorId));
         return this;
     }
 
-    public BezierRadarHeader setAccentColorId(int colorId) {
+    public BezierRadarHeader setAccentColorId(@ColorRes int colorId) {
         setAccentColor(ContextCompat.getColor(getContext(), colorId));
         return this;
     }
+
+    public BezierRadarHeader setEnableHorizontalDrag(boolean enable) {
+        this.mEnableHorizontalDrag = enable;
+        if (!enable) {
+            mWaveView.setWaveOffsetX(-1);
+        }
+        return this;
+    }
+
     //</editor-fold>
 
     //<editor-fold desc="RefreshHeader">
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             setPrimaryColor(colors[0]);
         }
@@ -137,25 +151,35 @@ public class BezierRadarHeader extends FrameLayout implements RefreshHeader {
     }
 
     @Override
-    public void onInitialized(RefreshKernel layout, int height, int extendHeight) {
-
+    public void onInitialized(RefreshKernel kernel, int height, int extendHeight) {
     }
 
     @Override
-    public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
-        mWaveView.setHeadHeight(Math.min(headHeight, offset));
-        mWaveView.setWaveHeight((int)(1.9f*Math.max(0, offset - headHeight)));
+    public boolean isSupportHorizontalDrag() {
+        return mEnableHorizontalDrag;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+        mWaveView.setWaveOffsetX(offsetX);
+        mWaveView.invalidate();
+    }
+
+    @Override
+    public void onPullingDown(float percent, int offset, int headerHeight, int extendHeight) {
+        mWaveView.setHeadHeight(Math.min(headerHeight, offset));
+        mWaveView.setWaveHeight((int)(1.9f*Math.max(0, offset - headerHeight)));
         mDotView.setFraction(percent);
     }
 
     @Override
-    public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
-        onPullingDown(percent, offset, headHeight, extendHeight);
+    public void onReleasing(float percent, int offset, int headerHeight, int extendHeight) {
+        onPullingDown(percent, offset, headerHeight, extendHeight);
     }
 
     @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
-        mWaveView.setHeadHeight(headHeight);
+    public void onRefreshReleased(final RefreshLayout layout, int headerHeight, int extendHeight) {
+        mWaveView.setHeadHeight(headerHeight);
         ValueAnimator animator = ValueAnimator.ofInt(
                 mWaveView.getWaveHeight(), 0,
                 -(int)(mWaveView.getWaveHeight()*0.8),0,
@@ -179,7 +203,7 @@ public class BezierRadarHeader extends FrameLayout implements RefreshHeader {
                 mDotView.setVisibility(INVISIBLE);
                 mProgressView.animate().scaleX((float) 1.0);
                 mProgressView.animate().scaleY((float) 1.0);
-                mProgressView.postDelayed(new Runnable() {
+                layout.getLayout().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         mProgressView.startAnim();
@@ -197,6 +221,11 @@ public class BezierRadarHeader extends FrameLayout implements RefreshHeader {
             }
         });
         valueAnimator.start();
+    }
+
+    @Override
+    public void onStartAnimator(RefreshLayout layout, int headerHeight, int extendHeight) {
+
     }
 
     @Override

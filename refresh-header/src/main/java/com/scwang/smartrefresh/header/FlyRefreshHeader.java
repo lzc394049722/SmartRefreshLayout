@@ -7,6 +7,7 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
@@ -67,6 +68,16 @@ public class FlyRefreshHeader extends FalsifyHeader implements RefreshHeader {
     //</editor-fold>
 
     //<editor-fold desc="RefreshHeader">
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
     @Override
     public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
         if (offset < 0) {
@@ -93,14 +104,7 @@ public class FlyRefreshHeader extends FalsifyHeader implements RefreshHeader {
     }
 
     @Override
-    public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
-        if (!mIsRefreshing) {
-            onPullingDown(percent, offset, headHeight, extendHeight);
-        }
-    }
-
-    @Override
-    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
         /**
          * 提前关闭 下拉视图偏移
          */
@@ -153,7 +157,19 @@ public class FlyRefreshHeader extends FalsifyHeader implements RefreshHeader {
     }
 
     @Override
-    public void setPrimaryColors(int... colors) {
+    public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
+        if (!mIsRefreshing) {
+            onPullingDown(percent, offset, headHeight, extendHeight);
+        }
+    }
+
+    @Override
+    public void onStartAnimator(RefreshLayout layout, int headHeight, int extendHeight) {
+
+    }
+
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
         if (colors.length > 0) {
             if (mScenceView != null) {
                 mScenceView.setPrimaryColor(colors[0]);

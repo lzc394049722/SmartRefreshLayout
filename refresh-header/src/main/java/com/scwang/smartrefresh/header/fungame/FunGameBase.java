@@ -1,14 +1,14 @@
 package com.scwang.smartrefresh.header.fungame;
 
-import android.support.annotation.RequiresApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.scwang.smartrefresh.layout.api.RefreshContent;
@@ -31,11 +31,11 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
     protected int mOffset;
     protected int mHeaderHeight;
     protected int mScreenHeightPixels;
-    protected RefreshState mState;
+    protected float mTouchY;
     protected boolean mIsFinish;
     protected boolean mLastFinish;
     protected boolean mManualOperation;
-    protected float mTouchY;
+    protected RefreshState mState;
     protected RefreshKernel mRefreshKernel;
     protected RefreshContent mRefreshContent;
     //</editor-fold>
@@ -71,12 +71,6 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
         if (!isInEditMode()) {
             super.setTranslationY(translationY);
         }
-    }
-
-    @Override
-    public void setLayoutParams(ViewGroup.LayoutParams params) {
-        super.setLayoutParams(params);
-        params.height = -3;
     }
 
     @Override
@@ -176,6 +170,16 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
     //</editor-fold>
 
     //<editor-fold desc="RefreshHeader">
+
+    @Override
+    public boolean isSupportHorizontalDrag() {
+        return false;
+    }
+
+    @Override
+    public void onHorizontalDrag(float percentX, int offsetX, int offsetMax) {
+    }
+
     @Override
     public void onPullingDown(float percent, int offset, int headHeight, int extendHeight) {
         if (mManualOperation) onManualOperationMove(percent, offset, headHeight, extendHeight);
@@ -188,6 +192,11 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
     @Override
     public void onReleasing(float percent, int offset, int headHeight, int extendHeight) {
         onPullingDown(percent, offset, headHeight, extendHeight);
+    }
+
+    @Override
+    public void onRefreshReleased(RefreshLayout layout, int headerHeight, int extendHeight) {
+
     }
 
     @Override
@@ -205,6 +214,7 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
         mRefreshKernel = kernel;
         mHeaderHeight = height;
         setTranslationY(mOffset - mHeaderHeight);
+        kernel.requestHeaderNeedTouchEventWhenRefreshing(true);
     }
 
     @Override
@@ -224,8 +234,8 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
         return 0;
     }
 
-    @Override
-    public void setPrimaryColors(int... colors) {
+    @Override@Deprecated
+    public void setPrimaryColors(@ColorInt int ... colors) {
     }
 
     @NonNull
@@ -236,7 +246,7 @@ public class FunGameBase extends FrameLayout implements RefreshHeader {
 
     @Override
     public SpinnerStyle getSpinnerStyle() {
-        return SpinnerStyle.FixedFront;
+        return SpinnerStyle.MatchLayout;
     }
     //</editor-fold>
 }
